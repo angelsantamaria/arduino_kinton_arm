@@ -54,8 +54,8 @@ int led = 13;
 Servo armServo[N_SERVOS]; 
 
 // Pin Definitions 
-//const int servo_pin[N_SERVOS] = {3, 5, 6, 9, 10, 11};
-const int servo_pin[N_SERVOS] = {2, 3, 4, 5, 6, 7};
+const int servo_pin[N_SERVOS] = {3, 5, 6, 9, 10, 11};
+//const int servo_pin[N_SERVOS] = {2, 3, 4, 5, 6, 7};
 
 // Joint initial positions
 float joint_ini[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
@@ -108,7 +108,9 @@ boolean send_data(ArmCmd cmd_id, unsigned char* out_data=NULL, boolean ack_check
   }
   
   // 2B sync + 1B cmd + 2B length + data + 1B CRC
+  //unsigned char data[2+1+2+length.asShort+1];
   unsigned char data[2+1+2+length.asShort+1];
+  memset(data, 0, sizeof(data));
   
   // Sync Bytes
   data[0] = 0xFF;
@@ -153,8 +155,8 @@ void receive_data(ArmCmd& cmd_id, unsigned char* data, boolean ack_check=true)
   read_state state = read_sync; 
  
   ArmCmd cmdByte=NAK;
-  unsigned char in_data[44];
-  unsigned char read_byte[38];
+  unsigned char in_data[44] = {};
+  unsigned char read_byte[38] = {};
   int read_=0;
   SUnsCharUnion inByte;
   
@@ -287,7 +289,7 @@ void receive_data(ArmCmd& cmd_id, unsigned char* data, boolean ack_check=true)
 boolean check_ack()
 {
   ArmCmd cmd_id=NAK;
-  unsigned char data[38];
+  unsigned char data[38]={};
   receive_data(cmd_id,data);
   
   if(cmd_id!=ACK)
@@ -297,7 +299,7 @@ boolean check_ack()
 
 void send_positions(float* pos, int* vel, boolean ack_check = true)
 {
-  unsigned char out_data[38]; // 2 Bvel + 36 Bpos
+  unsigned char out_data[38]={}; // 2 Bvel + 36 Bpos
 
   //velocity
   ShortByteUnion vel_u;
@@ -397,7 +399,7 @@ void moveSmooth()
 {  
   float pi=3.14159;
   for (int joint=0;joint<N_SERVOS;++joint){
-    //pos_deg[joint]=pos_deg_end[joint];
+    //pos_deg[joint] = pos_deg_end[joint];
     //pos_deg[joint] =  pos_deg[joint]+servo_vel[joint]*t_step; 
     float num = (pi*steps_done)/num_steps;
     pos_deg[joint] =  pos_deg_ini[joint]+((angle_range[joint]/pi)*(num-cos(num)*sin(num)));
@@ -422,14 +424,8 @@ void deg_to_us()
 void write_to_servos()
 {
   // Move servos
-  for (int ii = 0; ii < 6; ++ii) {
+  for (int ii = 0; ii < N_SERVOS; ++ii)
     armServo[ii].writeMicroseconds(pos_us[ii]);
-  }  
-  
-//  for (int ii = 4; ii < 6; ++ii) {
-//    armServo[4].writeMicroseconds(pos_us[4]);
-//    armServo[5].writeMicroseconds(pos_us[5]);
-//  }
 }
 
 //***************** Function to move the joints ****************
