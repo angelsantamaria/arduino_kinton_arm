@@ -58,20 +58,20 @@ Servo armServo[N_SERVOS];
 const int servo_pin[N_SERVOS] = {2, 3, 4, 5, 6, 7};
 
 // Joint initial positions
-float joint_ini[] = {67.0, 0.0, 115.0, 85.0, 0.0, 0.0};
+float joint_ini[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 int joint_ini_us[] = {1474, 780, 1972, 1580, 1627, 1627};
 
 // Saturation values
-float servo_min[] = {0.0,   0.0,   0.0,   0.0, -30.0, -110.0};
-float servo_max[] = {135.0, 135.0, 115.0, 170.0,  30.0, 110.0};
+float servo_min[] = {-67.5,  0.0,   0.0,   -85.0, -30.0, -110.0};
+float servo_max[] = {67.5, 135.0, 115.0,    85.0,  30.0, 110.0};
 // Global vars initialization
 int pos_us[] = {0, 0, 0, 0, 0, 0};
 // Positions during movement
-float pos_deg[] = {67.0, 0.0, 115.0, 85.0, 0.0, 0.0};
+float pos_deg[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 // Initial positions before movement
-float pos_deg_ini[] = {67.0, 0.0, 115.0, 85.0, 0.0, 0.0};
+float pos_deg_ini[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 // Final required positions
-float pos_deg_end[] = {67.0, 0.0, 115.0, 85.0, 0.0, 0.0};
+float pos_deg_end[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 // Servo velocities
 float servo_vel[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 // Servo movement angle range 
@@ -410,10 +410,10 @@ void deg_to_us()
   float middle = 90.0;
   // Relationship between real and desired rotation (differential joint)
   float alpha6 = 0.7;
-  pos_us[0] = 780 + int(pos_deg[0]*10.37);
+  pos_us[0] = 1474 + int(pos_deg[0]*10.37);
   pos_us[1] = 780 + int(pos_deg[1]*10.37);
-  pos_us[2] = 780 + int(pos_deg[2]*10.37);
-  pos_us[3] = 780 + int(pos_deg[3]*9.412);
+  pos_us[2] = 1972 - int(pos_deg[2]*10.37);
+  pos_us[3] = 1580 - int(pos_deg[3]*9.412);
   pos_us[4] = 780 + int((middle+pos_deg[4]-(pos_deg[5]*alpha6)) * 9.412);
   pos_us[5] = 780 + int((middle-pos_deg[4]-(pos_deg[5]*alpha6)) * 9.412);
 }
@@ -422,14 +422,14 @@ void deg_to_us()
 void write_to_servos()
 {
   // Move servos
-  for (int ii = 0; ii < 4; ++ii) {
+  for (int ii = 0; ii < 6; ++ii) {
     armServo[ii].writeMicroseconds(pos_us[ii]);
   }  
   
-  for (int ii = 4; ii < 6; ++ii) {
-    armServo[4].writeMicroseconds(pos_us[4]);
-    armServo[5].writeMicroseconds(pos_us[5]);
-  }
+//  for (int ii = 4; ii < 6; ++ii) {
+//    armServo[4].writeMicroseconds(pos_us[4]);
+//    armServo[5].writeMicroseconds(pos_us[5]);
+//  }
 }
 
 //***************** Function to move the joints ****************
