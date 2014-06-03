@@ -423,9 +423,12 @@ void deg_to_us()
 //******************** Write to servos ************
 void write_to_servos()
 {
-  // Move servos
-  for (int ii = 0; ii < N_SERVOS; ++ii)
+  // Servos 0 to 2 -> 780 - 1400 us
+  // Servos 3 to 6 -> 780 - 1600 us
+  for (int ii = 0; ii < N_SERVOS; ++ii){
     armServo[ii].writeMicroseconds(pos_us[ii]);
+    delay(1);
+  }
 }
 
 //***************** Function to move the joints ****************
@@ -454,8 +457,14 @@ void moveServos()
 // *************** Attach servos **************
 void attachServos()
 {
-  for (int ii = 0; ii < N_SERVOS; ++ii)
-    armServo[ii].attach(servo_pin[ii]);
+//  for (int ii = 0; ii < N_SERVOS; ++ii)
+//    armServo[ii].attach(servo_pin[ii]);
+  
+  for (int ii = 0; ii < 3; ++ii)  
+    armServo[ii].attach(servo_pin[ii],774,2174);  
+    
+  for (int ii = 3; ii < N_SERVOS; ++ii)  
+    armServo[ii].attach(servo_pin[ii],780,2380);
 }
 
 // *************** Detach servos **************
@@ -517,6 +526,8 @@ void loop() {
        send_data(IS_FINISHED);
      else
        send_data(RUNNING);
+    break;
+   default: 
     break; 
   }
   
