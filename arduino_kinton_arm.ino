@@ -108,7 +108,6 @@ boolean send_data(ArmCmd cmd_id, unsigned char* out_data=NULL, boolean ack_check
   }
   
   // 2B sync + 1B cmd + 2B length + data + 1B CRC
-  //unsigned char data[2+1+2+length.asShort+1];
   unsigned char data[2+1+2+length.asShort+1];
   memset(data, 0, sizeof(data));
   
@@ -297,13 +296,13 @@ boolean check_ack()
   return true;  
 }
 
-void send_positions(float* pos, int* vel, boolean ack_check = true)
+void send_positions(float* pos, int vel, boolean ack_check = true)
 {
   unsigned char out_data[38]={}; // 2 Bvel + 36 Bpos
 
   //velocity
   ShortByteUnion vel_u;
-  vel_u.asShort = (short int)*vel;
+  vel_u.asShort = (short int)vel;
   out_data[0] = vel_u.asBytes[0];
   out_data[1] = vel_u.asBytes[1];
  
@@ -328,7 +327,7 @@ void send_positions(float* pos, int* vel, boolean ack_check = true)
   send_data(SET_JOINTS,out_data,ack_check);
 }
 
-void get_new_positions(unsigned char *data)
+void get_new_positions(unsigned char* data)
 {
   // get velocity
   ShortByteUnion vel_u;
@@ -497,7 +496,7 @@ void setup() {
 //********************* Main loop *****************************
 void loop() {
   ArmCmd cmd_id=NAK;
-  unsigned char data[38];
+  unsigned char data[38]={};
   
   receive_data(cmd_id,data);
   
@@ -519,7 +518,7 @@ void loop() {
      get_motion_values();
      break;
    case GET_JOINTS:
-     send_positions(pos_deg,&deg_x_sec);
+     send_positions(pos_deg,deg_x_sec);
      break;
    case IS_FINISHED:
      if(finished)       
@@ -538,7 +537,8 @@ void loop() {
    steps_done = 0;
    for (int ii = 0; ii < N_SERVOS; ++ii) 
      pos_deg_ini[ii] = pos_deg[ii];
-  }   
+  } 
+  
 }
 
 
