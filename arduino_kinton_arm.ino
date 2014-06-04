@@ -58,24 +58,24 @@ const int servo_pin[N_SERVOS] = {3, 5, 6, 9, 10, 11};
 //const int servo_pin[N_SERVOS] = {2, 3, 4, 5, 6, 7};
 
 // Joint initial positions
-float joint_ini[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-int joint_ini_us[] = {1474, 780, 1972, 1580, 1627, 1627};
+float joint_ini[N_SERVOS] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+int joint_ini_us[N_SERVOS] = {1474, 780, 1972, 1580, 1627, 1627};
 
 // Saturation values
-float servo_min[] = {-67.5,  0.0,   0.0,   -85.0, -30.0, -110.0};
-float servo_max[] = {67.5, 135.0, 115.0,    85.0,  30.0, 110.0};
+float servo_min[N_SERVOS] = {-67.5,  0.0,   0.0,   -85.0, -30.0, -110.0};
+float servo_max[N_SERVOS] = {67.5, 135.0, 115.0,    85.0,  30.0, 110.0};
 // Global vars initialization
-int pos_us[] = {0, 0, 0, 0, 0, 0};
+int pos_us[N_SERVOS] = {0, 0, 0, 0, 0, 0};
 // Positions during movement
-float pos_deg[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+float pos_deg[N_SERVOS] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 // Initial positions before movement
-float pos_deg_ini[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+float pos_deg_ini[N_SERVOS] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 // Final required positions
-float pos_deg_end[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+float pos_deg_end[N_SERVOS] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 // Servo velocities
-float servo_vel[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+float servo_vel[N_SERVOS] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 // Servo movement angle range 
-float angle_range[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+float angle_range[N_SERVOS] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 float range_max = 0.0;
 // Number of iterations done to reach the desired angles
 int steps_done = 0;
@@ -103,7 +103,7 @@ boolean send_data(ArmCmd cmd_id, unsigned char* out_data=NULL, boolean ack_check
       length.asShort = 38;
       break;
     default: 
-      length.asShort=0;
+      length.asShort = 0;
       break;
   }
   
@@ -154,8 +154,10 @@ void receive_data(ArmCmd& cmd_id, unsigned char* data, boolean ack_check=true)
   read_state state = read_sync; 
  
   ArmCmd cmdByte=NAK;
-  unsigned char in_data[44] = {};
-  unsigned char read_byte[38] = {};
+  unsigned char in_data[44];
+  memset(in_data, 0, sizeof(in_data));
+  unsigned char read_byte[38];
+  memset(read_byte, 0, sizeof(read_byte));
   int read_=0;
   SUnsCharUnion inByte;
   
@@ -288,7 +290,8 @@ void receive_data(ArmCmd& cmd_id, unsigned char* data, boolean ack_check=true)
 boolean check_ack()
 {
   ArmCmd cmd_id=NAK;
-  unsigned char data[38]={};
+  unsigned char data[38];
+  memset(data, 0, sizeof(data));
   receive_data(cmd_id,data);
   
   if(cmd_id!=ACK)
@@ -298,8 +301,9 @@ boolean check_ack()
 
 void send_positions(float* pos, int vel, boolean ack_check = true)
 {
-  unsigned char out_data[38]={}; // 2 Bvel + 36 Bpos
-
+  unsigned char out_data[38]; // 2 Bvel + 36 Bpos
+  memset(out_data, 0, sizeof(out_data));
+  
   //velocity
   ShortByteUnion vel_u;
   vel_u.asShort = (short int)vel;
@@ -336,7 +340,7 @@ void get_new_positions(unsigned char* data)
   deg_x_sec = vel_u.asShort;
 
   //Joints and positions
-  for (unsigned int ii = 0; ii < 6; ++ii)
+  for (int ii = 0; ii < N_SERVOS; ++ii)
   {
     // Joint number
     ShortByteUnion joint_u;
@@ -434,13 +438,6 @@ void write_to_servos()
 void moveServos()
 {
   if(enable_write){
-    // check if end moving
-    steps_done = steps_done + 1;
-    if(steps_done == num_steps){
-      enable_write = false;
-      finished = true;
-    }
-    
     // smooth movements
     moveSmooth();
   
@@ -449,6 +446,13 @@ void moveServos()
     
     // Send servo commands
     write_to_servos();
+
+    // check if end moving
+    steps_done = steps_done + 1;
+    if(steps_done == num_steps){
+      enable_write = false;
+      finished = true;
+    }
   }
 }
   
@@ -496,7 +500,8 @@ void setup() {
 //********************* Main loop *****************************
 void loop() {
   ArmCmd cmd_id=NAK;
-  unsigned char data[38]={};
+  unsigned char data[38];
+  memset(data, 0, sizeof(data));
   
   receive_data(cmd_id,data);
   
