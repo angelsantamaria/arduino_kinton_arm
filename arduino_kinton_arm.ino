@@ -10,6 +10,9 @@
 #include <Servo.h>
 #include <MsTimer2.h>
 
+// num servos
+#define N_SERVOS 6
+
 typedef enum {SET_INI=0x69,
               DETACH=0x64,
               SET_JOINTS=0x73,
@@ -44,9 +47,6 @@ union SUnsCharUnion{
 // Serial COMM
 double serial_speed = 115200;
 
-// num servos
-#define N_SERVOS 6
-
 // led
 int led = 13;
 
@@ -76,6 +76,9 @@ float pos_deg_end[N_SERVOS] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 float servo_vel[N_SERVOS] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 // Servo movement angle range 
 float angle_range[N_SERVOS] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+//Empty array of data
+const unsigned char empty_data[38] = {};
+// Max angle range
 float range_max = 0.0;
 // Number of iterations done to reach the desired angles
 int steps_done = 0;
@@ -94,7 +97,7 @@ boolean enable_write = false;
 boolean finished = true;
 
 //************ Send DATA *******************
-boolean send_data(ArmCmd cmd_id, unsigned char* out_data=NULL, boolean ack_check=true)
+boolean send_data(ArmCmd cmd_id,const unsigned char* out_data, boolean ack_check=true)
 {
   ShortByteUnion length;
   switch(cmd_id)
@@ -120,7 +123,7 @@ boolean send_data(ArmCmd cmd_id, unsigned char* out_data=NULL, boolean ack_check
   data[3] = length.asBytes[1];
   data[4] = length.asBytes[0];
   // CRC
-  uint8_t checksum = (uint8_t)(cmd_id) + (uint8_t)(length.asBytes[0]) + (uint8_t)(length.asBytes[1]);
+  uint8_t checksum = (uint8_t)data[2] + (uint8_t)(length.asBytes[0]) + (uint8_t)(length.asBytes[1]);
     
   // Data Bytes
   for (int ii = 0; ii < length.asShort; ++ii)
@@ -170,7 +173,7 @@ void receive_data(ArmCmd& cmd_id, unsigned char* data, boolean ack_check=true)
     delayMicroseconds(90);
     new_input = true;
   }
-  Serial.flush();
+  //Serial.flush();
   
   int databyte = 0;
   
@@ -200,12 +203,12 @@ void receive_data(ArmCmd& cmd_id, unsigned char* data, boolean ack_check=true)
           else{
             num_sync_bytes=2;
             if(in_data[ii]==SET_INI) cmdByte=SET_INI;
-            if(in_data[ii]==DETACH) cmdByte=DETACH;                        
-            if(in_data[ii]==SET_JOINTS) cmdByte=SET_JOINTS;
-            if(in_data[ii]==GET_JOINTS) cmdByte=GET_JOINTS;
-            if(in_data[ii]==IS_FINISHED) cmdByte=IS_FINISHED; 
-            if(in_data[ii]==ACK) cmdByte=ACK;
-            if(in_data[ii]==NAK) cmdByte=NAK;
+            else if(in_data[ii]==DETACH) cmdByte=DETACH;                        
+            else if(in_data[ii]==SET_JOINTS) cmdByte=SET_JOINTS;
+            else if(in_data[ii]==GET_JOINTS) cmdByte=GET_JOINTS;
+            else if(in_data[ii]==IS_FINISHED) cmdByte=IS_FINISHED; 
+            else if(in_data[ii]==ACK) cmdByte=ACK;
+            else cmdByte=NAK;
             checksum = checksum+(uint8_t)in_data[ii];
             state = read_length;
             num_length_bytes = 2;
@@ -276,13 +279,13 @@ void receive_data(ArmCmd& cmd_id, unsigned char* data, boolean ack_check=true)
     }
     if(success) {
       if (ack_check && cmdByte!=ACK && cmdByte!=NAK)
-          send_data(ACK);
+          send_data(ACK,empty_data);
       for(int jj=0;jj<38;jj++)
         data[jj] = read_byte[jj];
       cmd_id=cmdByte;     
     }
     else
-      send_data(NAK);
+      send_data(NAK,empty_data);
   }
 }
 
@@ -375,7 +378,7 @@ void get_motion_values()
   
   if(num_steps>0){
     for (int ii = 0; ii < N_SERVOS; ++ii){
-      float angle_step = angle_range[ii]/float(num_steps);
+      float angle_step = angle_range[ii]/(float)num_steps;
       servo_vel[ii] = angle_step/t_step;   
     }
     start_moving = true;
@@ -400,7 +403,7 @@ void move_to_default()
 // **************** S-curve to smooth movement ************
 void moveSmooth()
 {  
-  float pi=3.14159;
+  float pi = 3.14159;
   for (int joint=0;joint<N_SERVOS;++joint){
     //pos_deg[joint] = pos_deg_end[joint];
     //pos_deg[joint] =  pos_deg[joint]+servo_vel[joint]*t_step; 
@@ -527,9 +530,9 @@ void loop() {
      break;
    case IS_FINISHED:
      if(finished)       
-       send_data(IS_FINISHED);
+       send_data(IS_FINISHED,empty_data);
      else
-       send_data(RUNNING);
+       send_data(RUNNING,empty_data);
     break;
    default: 
     break; 
