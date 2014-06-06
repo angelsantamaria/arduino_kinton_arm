@@ -9,6 +9,7 @@
 //Library 
 #include <Servo.h>
 #include <MsTimer2.h>
+#include <avr/wdt.h>
 
 // num servos
 #define N_SERVOS 6
@@ -88,6 +89,8 @@ int num_steps = 0;
 float t_step = 0.02;
 // Initial joint velocity set to 180 degrees/sec  
 int deg_x_sec = 50;
+// Time since last communication using serial
+unsigned long time_last_comm = 0;
 
 // Activate motion
 boolean start_moving = false;
@@ -507,6 +510,13 @@ void loop() {
   memset(data, 0, sizeof(data));
   
   receive_data(cmd_id,data);
+
+//  if(cmd_id!=NAK) time_last_comm=millis();
+//  unsigned long total_time = millis();
+//  if ((total_time - time_last_comm) > 1000) {
+//    move_to_default();
+//    time_last_comm = millis();
+//  }
   
   switch(cmd_id){
    case DETACH:
