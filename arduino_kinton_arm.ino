@@ -15,6 +15,7 @@
 #define N_SERVOS 6
 
 typedef enum {SET_INI=0x69,
+              ATTACH=0x61,
               DETACH=0x64,
               SET_JOINTS=0x73,
               GET_JOINTS=0x67,
@@ -55,8 +56,8 @@ int led = 13;
 Servo armServo[N_SERVOS]; 
 
 // Pin Definitions 
-const int servo_pin[N_SERVOS] = {3, 5, 6, 9, 10, 11};
-//const int servo_pin[N_SERVOS] = {2, 3, 4, 5, 6, 7};
+//const int servo_pin[N_SERVOS] = {3, 5, 6, 9, 10, 11};
+const int servo_pin[N_SERVOS] = {2, 3, 4, 5, 6, 7};
 
 // Joint initial positions
 float joint_ini[N_SERVOS] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
@@ -206,7 +207,8 @@ void receive_data(ArmCmd& cmd_id, unsigned char* data, boolean ack_check=true)
           else{
             num_sync_bytes=2;
             if(in_data[ii]==SET_INI) cmdByte=SET_INI;
-            else if(in_data[ii]==DETACH) cmdByte=DETACH;                        
+            else if(in_data[ii]==ATTACH) cmdByte=ATTACH;
+            else if(in_data[ii]==DETACH) cmdByte=DETACH;            
             else if(in_data[ii]==SET_JOINTS) cmdByte=SET_JOINTS;
             else if(in_data[ii]==GET_JOINTS) cmdByte=GET_JOINTS;
             else if(in_data[ii]==IS_FINISHED) cmdByte=IS_FINISHED; 
@@ -519,6 +521,9 @@ void loop() {
 //  }
   
   switch(cmd_id){
+   case ATTACH:
+     attachServos();
+     break;    
    case DETACH:
      detachServos();
      break;
