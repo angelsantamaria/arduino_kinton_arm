@@ -64,8 +64,8 @@ float joint_ini[N_SERVOS] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 int joint_ini_us[N_SERVOS] = {1474, 780, 1972, 1580, 1627, 1627};
 
 // Saturation values
-float servo_min[N_SERVOS] = {-67.5,  0.0,   0.0,   -85.0, -30.0, -110.0};
-float servo_max[N_SERVOS] = {67.5, 135.0, 115.0,    85.0,  30.0, 110.0};
+float servo_min[N_SERVOS] = {-67.5,  20.0,  20.0,   -85.0, -30.0, -110.0};
+float servo_max[N_SERVOS] = {67.5,  135.0, 115.0,    85.0,  30.0,  110.0};
 // Global vars initialization
 int pos_us[N_SERVOS] = {0, 0, 0, 0, 0, 0};
 // Positions during movement
